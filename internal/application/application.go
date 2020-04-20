@@ -1,9 +1,12 @@
 package application
 
 import (
+	"bytes"
 	"github.com/alexey-zayats/claim-handler/internal/form"
+	"github.com/alexey-zayats/claim-handler/internal/util"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 // AppKind ...
@@ -16,14 +19,22 @@ const (
 	KindPeople
 )
 
-// Error ...
-type Error struct {
-	Name  string
-	Value string
-}
+// ValidationErrors ...
+type ValidationErrors map[string][]string
 
-// Validation ...
-type Validation []Error
+func (ve ValidationErrors) Error() string {
+
+	buff := bytes.NewBufferString("")
+
+	for key, s := range ve {
+		buff.WriteString(key)
+		buff.WriteString(": ")
+		buff.WriteString(strings.Join(s, ", "))
+		buff.WriteString("\n")
+	}
+
+	return strings.TrimSpace(buff.String())
+}
 
 // Pass ...
 type Pass struct {
@@ -35,8 +46,9 @@ type Pass struct {
 
 // Application ..
 type Application struct {
+	Dirty        bool
 	Kind         AppKind
-	DistrictID   int
+	DistrictID   int64
 	PassType     int
 	Title        string
 	Address      string
@@ -45,13 +57,36 @@ type Application struct {
 	CeoName      string
 	CeoPhone     string
 	CeoEmail     string
-	ActivityKind int
+	ActivityKind int64
 	Agreement    int
 	Reliability  int
 	Passes       []Pass
 }
 
-var re = regexp.MustCompile(`((?:\p{L}{1})(?:\s+)?(?:\d{3})(?:\s+)?(?:\p{L}{2})(?:\s+)?(?:\d{2,3}))`)
+var re = []*regexp.Regexp{
+	// Е 100 EE 123 RUS
+	regexp.MustCompile(`((?:\p{L}{1})(?:\s+)?(?:\d{3})(?:\s+)?(?:\p{L}{2})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// АО 308 26 RUS
+	regexp.MustCompile(`((?:\p{L}{2})(?:\s+)?(?:\d{3})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// УМ 5577 34, ТУ 6644 18
+	regexp.MustCompile(`((?:\p{L}{2})(?:\s+)?(?:\d{4})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// АЕ 618 Р 29
+	regexp.MustCompile(`((?:\p{L}{2})(?:\s+)?(?:\d{3})(?:\s+)?(?:\p{L}{1})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// 0133 ОХ 77
+	// 8797 СА 50
+	// 2302 КУ 87
+	// 4400 РН 50
+	regexp.MustCompile(`((?:\d{4})(?:\s+)?(?:\p{L}{2})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// 3456 С 06
+	regexp.MustCompile(`((?:\d{4})(?:\s+)?(?:\p{L}{1})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// ТВР 499 91
+	regexp.MustCompile(`(?:\p{L}{3})(?:\s+)?((?:\d{3})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// 612 К 36
+	regexp.MustCompile(`((?:\d{3})(?:\s+)?(?:\p{L}{1})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// Н 2266 50
+	regexp.MustCompile(`(?:\p{L}{1})(?:\s+)?((?:\d{4})(?:\s+)?(?:\d{2,3})(?:\s+)?(?i:rus?)?)`),
+	// 009 D 200 77
+}
 
 // Vehicle ...
 func Vehicle(form *form.Vehicle) *Application {
@@ -59,7 +94,7 @@ func Vehicle(form *form.Vehicle) *Application {
 		Kind: KindVehicle,
 	}
 
-	app.DistrictID = int(app.parseInt64(form.DistrictID))
+	app.DistrictID = app.parseInt64(form.DistrictID)
 	app.PassType = int(app.parseInt64(form.PassType))
 	app.Title = form.Title
 	app.Address = form.Address
@@ -68,7 +103,7 @@ func Vehicle(form *form.Vehicle) *Application {
 	app.CeoName = form.CeoName
 	app.CeoPhone = form.CeoPhone
 	app.CeoEmail = form.CeoEmail
-	app.ActivityKind = int(app.parseInt64(form.ActivityKind))
+	app.ActivityKind = app.parseInt64(form.ActivityKind)
 	app.Agreement = int(app.parseInt64(form.Personal))
 	app.Reliability = int(app.parseInt64(form.Authenticity))
 
@@ -90,7 +125,7 @@ func People(form *form.People) *Application {
 		Kind: KindPeople,
 	}
 
-	app.DistrictID = int(app.parseInt64(form.DistrictID))
+	app.DistrictID = app.parseInt64(form.DistrictID)
 	app.PassType = int(app.parseInt64(form.PassType))
 	app.Title = form.Title
 	app.Address = form.Address
@@ -99,7 +134,7 @@ func People(form *form.People) *Application {
 	app.CeoName = form.CeoName
 	app.CeoPhone = form.CeoPhone
 	app.CeoEmail = form.CeoEmail
-	app.ActivityKind = int(app.parseInt64(form.ActivityKind))
+	app.ActivityKind = app.parseInt64(form.ActivityKind)
 	app.Agreement = int(app.parseInt64(form.Personal))
 	app.Reliability = int(app.parseInt64(form.Authenticity))
 
@@ -123,13 +158,32 @@ func (a *Application) parseInt64(s string) int64 {
 }
 
 // Validate ...
-func (a *Application) Validate() Validation {
-	var v Validation
+func (a *Application) Validate() ValidationErrors {
+	ve := make(ValidationErrors)
 
-	v = append(v, Error{
-		Name:  "aaa",
-		Value: "bbb",
-	})
+	if a.Kind == KindVehicle {
+		for i, p := range a.Passes {
 
-	return v
+			ok := false
+			for _, r := range re {
+				if r.MatchString(p.Car) == true {
+					ok = true
+					break
+				}
+			}
+
+			a.Dirty = ok
+			a.Passes[i].Car = util.TrimNumber(p.Car)
+		}
+	}
+
+	if util.CheckINN(a.Inn) == false {
+		ve["inn"] = append(ve["inn"], "Некорректный ИНН")
+	}
+
+	if util.CheckOGRN(a.Ogrn) == false {
+		ve["ogrn"] = append(ve["org"], "Некорректный ОРГН")
+	}
+
+	return ve
 }

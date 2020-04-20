@@ -45,11 +45,18 @@ func (s *Server) ServePeople(w http.ResponseWriter, r *http.Request) {
 	validationErrors := err.(validator.ValidationErrors)
 
 	if len(validationErrors) > 0 {
-		s.displayErrors(validationErrors, w, r)
+		s.formErrors(validationErrors, w, r)
 		return
 	}
 
 	app := application.People(form)
+	err = app.Validate()
+	appErrors := err.(application.ValidationErrors)
+
+	if len(appErrors) > 0 {
+		s.appErrors(appErrors, w, r)
+		return
+	}
 
 	err = s.que.Publish(s.conf.Amqp.Exchange, s.conf.Amqp.Routing.People, app, amqp.Table{}, amqp.Table{})
 	if err != nil {

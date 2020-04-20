@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/alexey-zayats/claim-handler/internal/application"
 	"github.com/alexey-zayats/claim-handler/internal/config"
 	"github.com/alexey-zayats/claim-handler/internal/queue"
 	"github.com/alexey-zayats/claim-handler/internal/server/middleware"
@@ -91,4 +93,37 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) http500Error(err []byte, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write(err)
+}
+
+func (s *Server) formErrors(e validator.ValidationErrors, w http.ResponseWriter, r *http.Request) {
+
+	fields := make(map[string][]string)
+	for _, v := range e {
+		fields[v.Tag()] = append(fields[v.Tag()], fmt.Sprintf("Ошибка валидации поля '%s'", v.Tag()))
+	}
+
+	jsf, err := json.Marshal(fields)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"reason": err}).Error("unable marshal fields")
+		msg := fmt.Sprintf(format, "Internal server error", "unable marshal fields", 5, 500)
+		s.http500Error([]byte(msg), w, r)
+		return
+	}
+
+	msg := fmt.Sprintf(`{"errors": %s}`, jsf)
+	s.http500Error([]byte(msg), w, r)
+}
+
+func (s *Server) appErrors(ve application.ValidationErrors, w http.ResponseWriter, r *http.Request) {
+
+	jsf, err := json.Marshal(ve)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"reason": err}).Error("unable marshal fields")
+		msg := fmt.Sprintf(format, "Internal server error", "unable marshal fields", 5, 500)
+		s.http500Error([]byte(msg), w, r)
+		return
+	}
+
+	msg := fmt.Sprintf(`{"errors": %s}`, jsf)
+	s.http500Error([]byte(msg), w, r)
 }

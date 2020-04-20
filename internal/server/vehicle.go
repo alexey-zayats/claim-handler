@@ -39,14 +39,25 @@ func (s *Server) ServeVehicle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.validate.Struct(form)
-	validationErrors := err.(validator.ValidationErrors)
+	if err != nil {
+		validationErrors := err.(validator.ValidationErrors)
 
-	if len(validationErrors) > 0 {
-		s.displayErrors(validationErrors, w, r)
-		return
+		if len(validationErrors) > 0 {
+			s.formErrors(validationErrors, w, r)
+			return
+		}
 	}
 
 	app := application.Vehicle(form)
+	err = app.Validate()
+	if err != nil {
+		appErrors := err.(application.ValidationErrors)
+
+		if len(appErrors) > 0 {
+			s.appErrors(appErrors, w, r)
+			return
+		}
+	}
 
 	err = s.que.Publish(s.conf.Amqp.Exchange, s.conf.Amqp.Routing.Vehicle, app, amqp.Table{}, amqp.Table{})
 	if err != nil {
@@ -58,23 +69,4 @@ func (s *Server) ServeVehicle(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
-}
-
-func (s *Server) displayErrors(e validator.ValidationErrors, w http.ResponseWriter, r *http.Request) {
-
-	fields := make(map[string][]string)
-	for _, v := range e {
-		fields[v.Tag()] = append(fields[v.Tag()], fmt.Sprintf("Ошибка валидации поля '%s'", v.Tag()))
-	}
-
-	jsf, err := json.Marshal(fields)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"reason": err}).Error("unable marshal fields")
-		msg := fmt.Sprintf(format, "Internal server error", "unable marshal fields", 5, 500)
-		s.http500Error([]byte(msg), w, r)
-		return
-	}
-
-	msg := fmt.Sprintf(`{"errors": %s}`, jsf)
-	s.http500Error([]byte(msg), w, r)
 }
