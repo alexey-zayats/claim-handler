@@ -172,7 +172,7 @@ func (a *Application) Validate() ValidationErrors {
 				}
 			}
 
-			a.Dirty = ok
+			a.Dirty = !ok
 			a.Passes[i].Car = util.TrimNumber(p.Car)
 		}
 	}
