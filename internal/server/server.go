@@ -27,6 +27,7 @@ type Server struct {
 
 	validate *validator.Validate
 	cache    *cache.Cache
+	expire   time.Duration
 }
 
 // DI структура параметров сервера
@@ -40,12 +41,16 @@ var format = `{"name":"%s","message":"%s","code":%d,"status":%d}`
 
 // NewServer метод конструктора сервера
 func NewServer(di DI) *Server {
+
+	expire := time.Duration(di.Config.Cache.Expire) * time.Minute
+	cleanup := time.Duration(di.Config.Cache.Cleanup) * time.Minute
+
 	s := &Server{
 		conf:     di.Config,
 		que:      di.Queue,
 		validate: validator.New(),
-		cache: cache.New(time.Duration(di.Config.Cache.Expire)*time.Minute,
-			time.Duration(di.Config.Cache.Cleanup)*time.Minute),
+		cache:    cache.New(expire, cleanup),
+		expire:   expire,
 	}
 	return s
 }
