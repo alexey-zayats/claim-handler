@@ -47,6 +47,9 @@ func init() {
 
 		{Name: "amqp-routing-vehicle", Value: "form.vehicle", Usage: "vehicle form routing key", ViperBind: "Amqp.Routing.Vehicle"},
 		{Name: "amqp-routing-people", Value: "form.people", Usage: "people form routing key", ViperBind: "Amqp.Routing.People"},
+
+		{Name: "cache-expire", Value: 1, Usage: "cache expire time", ViperBind: "Cache.Expire"},
+		{Name: "cache-cleanup", Value: 5, Usage: "cache cleanup time", ViperBind: "Cache.Cleanup"},
 	}
 
 	config.Apply(rootCmd, cfgParams)

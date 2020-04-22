@@ -9,6 +9,7 @@ import (
 	"github.com/alexey-zayats/claim-handler/internal/queue"
 	"github.com/alexey-zayats/claim-handler/internal/server/middleware"
 	"github.com/go-playground/validator/v10"
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/dig"
@@ -25,6 +26,7 @@ type Server struct {
 	serving bool
 
 	validate *validator.Validate
+	cache    *cache.Cache
 }
 
 // DI структура параметров сервера
@@ -34,12 +36,16 @@ type DI struct {
 	Queue  *queue.Queue
 }
 
+var format = `{"name":"%s","message":"%s","code":%d,"status":%d}`
+
 // NewServer метод конструктора сервера
 func NewServer(di DI) *Server {
 	s := &Server{
 		conf:     di.Config,
 		que:      di.Queue,
 		validate: validator.New(),
+		cache: cache.New(time.Duration(di.Config.Cache.Expire)*time.Minute,
+			time.Duration(di.Config.Cache.Cleanup)*time.Minute),
 	}
 	return s
 }
@@ -119,7 +125,7 @@ func (s *Server) appErrors(ve application.ValidationErrors, w http.ResponseWrite
 	jsf, err := json.Marshal(ve)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"reason": err}).Error("unable marshal fields")
-		msg := fmt.Sprintf(format, "Internal server error", "unable marshal fields", 5, 500)
+		msg := fmt.Sprintf(format, "Internal server error", "unable marshal fields", 6, 500)
 		s.http500Error([]byte(msg), w, r)
 		return
 	}

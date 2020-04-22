@@ -6,6 +6,7 @@ import (
 	"github.com/alexey-zayats/claim-handler/internal/application"
 	"github.com/alexey-zayats/claim-handler/internal/form"
 	"github.com/go-playground/validator/v10"
+	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 	"io/ioutil"
@@ -58,6 +59,18 @@ func (s *Server) ServeVehicle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	key := fmt.Sprintf("%d-%d", app.Inn, app.Ogrn)
+	if _, ok := s.cache.Get(key); ok {
+		logrus.WithFields(logrus.Fields{"INN": app.Inn}).Error("rate limit")
+
+		txt := fmt.Sprintf("Вы не можете подавать заявку чаще чем одни раз за %s", cache.DefaultExpiration.String())
+		msg := fmt.Sprintf(format, "Bad request", txt, 100, 400)
+		s.http500Error([]byte(msg), w, r)
+		return
+	}
+
+	s.cache.Set(key, true, cache.DefaultExpiration)
 
 	err = s.que.Publish(s.conf.Amqp.Exchange, s.conf.Amqp.Routing.Vehicle, app, amqp.Table{}, amqp.Table{})
 	if err != nil {

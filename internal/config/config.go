@@ -24,6 +24,10 @@ type Config struct {
 		Host string
 		Port int
 	}
+	Cache struct {
+		Expire  int
+		Cleanup int
+	}
 }
 
 // NewConfig ...
