@@ -3,6 +3,7 @@ package application
 import (
 	"github.com/alexey-zayats/claim-handler/internal/form"
 	"github.com/alexey-zayats/claim-handler/internal/util"
+	"html"
 )
 
 // People ..
@@ -28,13 +29,13 @@ func NewPeople(form *form.People) *People {
 
 	app.DistrictID = parseInt64(form.DistrictID)
 	app.PassType = int(parseInt64(form.PassType))
-	app.Title = form.Title
-	app.Address = form.Address
+	app.Title = html.EscapeString(form.Title)
+	app.Address = html.EscapeString(form.Address)
 	app.Inn = parseInt64(form.Inn)
 	app.Ogrn = parseInt64(form.Ogrn)
-	app.CeoName = form.CeoName
-	app.CeoPhone = form.CeoPhone
-	app.CeoEmail = form.CeoEmail
+	app.CeoName = html.EscapeString(form.CeoName)
+	app.CeoPhone = html.EscapeString(form.CeoPhone)
+	app.CeoEmail = html.EscapeString(form.CeoEmail)
 	app.ActivityKind = parseInt64(form.ActivityKind)
 	app.Agreement = int(parseInt64(form.Personal))
 	app.Reliability = int(parseInt64(form.Authenticity))
@@ -42,9 +43,9 @@ func NewPeople(form *form.People) *People {
 	for _, p := range form.Passes {
 		app.Passes = append(app.Passes, Pass{
 			FIO: FIO{
-				Lastname:   p.Lastname,
-				Firstname:  p.Firstname,
-				Middlename: p.Middlename,
+				Lastname:   html.EscapeString(p.Lastname),
+				Firstname:  html.EscapeString(p.Firstname),
+				Middlename: html.EscapeString(p.Middlename),
 			},
 		})
 	}

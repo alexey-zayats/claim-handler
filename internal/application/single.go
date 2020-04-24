@@ -3,6 +3,7 @@ package application
 import (
 	"github.com/alexey-zayats/claim-handler/internal/form"
 	"github.com/alexey-zayats/claim-handler/internal/util"
+	"html"
 	"time"
 )
 
@@ -39,34 +40,34 @@ func NewSingle(form *form.Single) *Single {
 	app := &Single{}
 	app.DistrictID = parseInt64(form.DistrictID)
 	app.PassType = int(parseInt64(form.PassType))
-	app.Title = form.Title
-	app.Address = form.Address
+	app.Title = html.EscapeString(form.Title)
+	app.Address = html.EscapeString(form.Address)
 	app.Inn = parseInt64(form.Inn)
 	app.Ogrn = 3333333333333
-	app.CeoName = form.CeoName
-	app.CeoPhone = form.CeoPhone
-	app.CeoEmail = form.CeoEmail
+	app.CeoName = html.EscapeString(form.CeoName)
+	app.CeoPhone = html.EscapeString(form.CeoPhone)
+	app.CeoEmail = html.EscapeString(form.CeoEmail)
 	app.ActivityKind = parseInt64(form.ActivityKind)
 	app.Agreement = int(parseInt64(form.Personal))
 	app.Reliability = int(parseInt64(form.Authenticity))
 
-	app.CityFrom = form.CityFrom
-	app.CityTo = form.CityTo
-	app.AddressDest = form.AddressDest
+	app.CityFrom = html.EscapeString(form.CityFrom)
+	app.CityTo = html.EscapeString(form.CityTo)
+	app.AddressDest = html.EscapeString(form.AddressDest)
 	app.DateFrom = form.DateFrom.Time
 	app.DateTo = form.DateTo.Time
-	app.OtherReason = form.OtherReason
-	app.WhoNeedsHelp = form.WhoNeedsHelp
-	app.WhoNeedsHelpPhone = form.WhoNeedsHelpPhone
-	app.DocLinks = form.DocLinks
+	app.OtherReason = html.EscapeString(form.OtherReason)
+	app.WhoNeedsHelp = html.EscapeString(form.WhoNeedsHelp)
+	app.WhoNeedsHelpPhone = html.EscapeString(form.WhoNeedsHelpPhone)
+	app.DocLinks = html.EscapeString(form.DocLinks)
 
 	for _, p := range form.Passes {
 		app.Passes = append(app.Passes, Pass{
-			Car: p.Car,
+			Car: html.EscapeString(p.Car),
 			FIO: FIO{
-				Lastname:   p.Lastname,
-				Firstname:  p.Firstname,
-				Middlename: p.Middlename,
+				Lastname:   html.EscapeString(p.Lastname),
+				Firstname:  html.EscapeString(p.Firstname),
+				Middlename: html.EscapeString(p.Middlename),
 			},
 		})
 	}
