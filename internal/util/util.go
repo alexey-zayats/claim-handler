@@ -103,7 +103,8 @@ func CheckINN(d int64) bool {
 
 		a := 7*inn[0] + 2*inn[1] + 4*inn[2] +
 			10*inn[3] + 3*inn[4] + 5*inn[5] +
-			9*inn[6] + 4*inn[7] + 6*inn[8] + 8*inn[9]
+			9*inn[6] + 4*inn[7] + 6*inn[8] +
+			8*inn[9]
 
 		b := 3*inn[0] + 7*inn[1] + 2*inn[2] +
 			4*inn[3] + 10*inn[4] + 3*inn[5] +
@@ -123,7 +124,7 @@ func CheckINN(d int64) bool {
 		check1 := inn[10]
 		check2 := inn[11]
 
-		if check1 != sum1 && check2 != sum2 {
+		if check1 != sum1 || check2 != sum2 {
 			return false
 		}
 	}
