@@ -47,8 +47,13 @@ func init() {
 
 		{Name: "amqp-routing-vehicle", Value: "form.vehicle", Usage: "vehicle form routing key", ViperBind: "Amqp.Routing.Vehicle"},
 		{Name: "amqp-routing-people", Value: "form.people", Usage: "people form routing key", ViperBind: "Amqp.Routing.People"},
+		{Name: "amqp-routing-single", Value: "form.single", Usage: "single form routing key", ViperBind: "Amqp.Routing.Single"},
 
-		{Name: "cache-expire", Value: 1, Usage: "cache expire time", ViperBind: "Cache.Expire"},
+		{Name: "cache-expire-default", Value: 1, Usage: "default cache expire time", ViperBind: "Cache.Expire.Default"},
+		{Name: "cache-expire-vehicle", Value: 1, Usage: "vehicle cache expire time", ViperBind: "Cache.Expire.Vehicle"},
+		{Name: "cache-expire-people", Value: 1, Usage: "people cache expire time", ViperBind: "Cache.Expire.People"},
+		{Name: "cache-expire-single", Value: 1, Usage: "single cache expire time", ViperBind: "Cache.Expire.Single"},
+
 		{Name: "cache-cleanup", Value: 5, Usage: "cache cleanup time", ViperBind: "Cache.Cleanup"},
 	}
 

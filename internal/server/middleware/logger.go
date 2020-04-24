@@ -11,18 +11,14 @@ import (
 func AddLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// We do not want to be spammed by Kubernetes health check.
-		// Do not log Kubernetes health check.
-		// You can change this behavior as you wish.
 		if r.Header.Get("X-Liveness-Probe") == "Healthz" {
 			h.ServeHTTP(w, r)
 			return
 		}
 
-		proto := r.Proto
-		method := r.Method
-		remoteAddr := r.RemoteAddr
-		userAgent := r.UserAgent()
+		t1 := time.Now()
+
+		h.ServeHTTP(w, r)
 
 		// Prepare fields to log
 		var scheme string
@@ -34,19 +30,21 @@ func AddLogger(h http.Handler) http.Handler {
 
 		uri := strings.Join([]string{scheme, "://", r.Host, r.RequestURI}, "")
 
-		t1 := time.Now()
-
-		h.ServeHTTP(w, r)
+		status := r.Header.Get("Status")
+		forwarded := r.Header.Get("X-Forwarded-For")
+		method := r.Method
+		remoteAddr := r.RemoteAddr
+		userAgent := r.UserAgent()
 
 		// Log HTTP response
 		logrus.WithFields(logrus.Fields{
-			"http-scheme": scheme,
-			"http-proto":  proto,
 			"http-method": method,
 			"remote-addr": remoteAddr,
+			"forwarded":   forwarded,
 			"user-agent":  userAgent,
 			"uri":         uri,
 			"latency":     time.Since(t1),
+			"status":      status,
 		}).Info("Request")
 
 	})

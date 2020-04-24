@@ -13,9 +13,8 @@ import (
 	"time"
 )
 
-// ServePeople ...
-func (s *Server) ServePeople(w http.ResponseWriter, r *http.Request) {
-
+// ServeSingle ...
+func (s *Server) ServeSingle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		msg := fmt.Sprintf(format, "Bad request", "POST method required", 1, 500)
 		s.http500Error([]byte(msg), w, r)
@@ -30,7 +29,7 @@ func (s *Server) ServePeople(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	form := &form.People{}
+	form := &form.Single{}
 
 	err = json.Unmarshal(body, form)
 	if err != nil {
@@ -41,27 +40,31 @@ func (s *Server) ServePeople(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.validate.Struct(form)
-	validationErrors := err.(validator.ValidationErrors)
+	if err != nil {
+		validationErrors := err.(validator.ValidationErrors)
 
-	if len(validationErrors) > 0 {
-		s.formErrors(validationErrors, w, r)
-		return
+		if len(validationErrors) > 0 {
+			s.formErrors(validationErrors, w, r)
+			return
+		}
 	}
 
-	app := application.NewPeople(form)
+	app := application.NewSingle(form)
 	err = app.Validate()
-	appErrors := err.(application.ValidationErrors)
+	if err != nil {
+		appErrors := err.(application.ValidationErrors)
 
-	if len(appErrors) > 0 {
-		s.appErrors(appErrors, w, r)
-		return
+		if len(appErrors) > 0 {
+			s.appErrors(appErrors, w, r)
+			return
+		}
 	}
 
-	expire := time.Duration(s.conf.Cache.Expire.People) * time.Minute
+	expire := time.Duration(s.conf.Cache.Expire.Single) * time.Minute
 
 	key := fmt.Sprintf("%d-%d", app.Inn, app.Ogrn)
 	if _, ok := s.cache.Get(key); ok {
-		logrus.WithFields(logrus.Fields{"key": key}).Error("rate limit")
+		logrus.WithFields(logrus.Fields{"INN": app.Inn}).Error("rate limit")
 
 		txt := fmt.Sprintf("Вы не можете подавать заявку чаще чем одни раз в течение %s", expire.String())
 		msg := fmt.Sprintf(format, "Bad request", txt, 100, 400)
@@ -71,7 +74,7 @@ func (s *Server) ServePeople(w http.ResponseWriter, r *http.Request) {
 
 	s.cache.Set(key, true, expire)
 
-	err = s.que.Publish(s.conf.Amqp.Exchange, s.conf.Amqp.Routing.People, app, amqp.Table{}, amqp.Table{})
+	err = s.que.Publish(s.conf.Amqp.Exchange, s.conf.Amqp.Routing.Single, app, amqp.Table{}, amqp.Table{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"reason": err}).Error("unable send data to queue")
 		msg := fmt.Sprintf(format, "Internal server error", "Unable send data to queue", 4, 500)

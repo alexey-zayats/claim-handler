@@ -11,6 +11,7 @@ func (s *Server) makeHandler() *http.ServeMux {
 	handler.Handle("/metrics", promhttp.Handler())
 	handler.HandleFunc("/handler/vehicle", s.ServeVehicle)
 	handler.HandleFunc("/handler/people", s.ServePeople)
+	handler.HandleFunc("/handler/single", s.ServeSingle)
 
 	return handler
 }

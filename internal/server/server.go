@@ -42,7 +42,7 @@ var format = `{"name":"%s","message":"%s","code":%d,"status":%d}`
 // NewServer метод конструктора сервера
 func NewServer(di DI) *Server {
 
-	expire := time.Duration(di.Config.Cache.Expire) * time.Minute
+	expire := time.Duration(di.Config.Cache.Expire.Default) * time.Minute
 	cleanup := time.Duration(di.Config.Cache.Cleanup) * time.Minute
 
 	s := &Server{
@@ -50,7 +50,6 @@ func NewServer(di DI) *Server {
 		que:      di.Queue,
 		validate: validator.New(),
 		cache:    cache.New(expire, cleanup),
-		expire:   expire,
 	}
 	return s
 }

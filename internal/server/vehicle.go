@@ -6,11 +6,11 @@ import (
 	"github.com/alexey-zayats/claim-handler/internal/application"
 	"github.com/alexey-zayats/claim-handler/internal/form"
 	"github.com/go-playground/validator/v10"
-	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 // ServeVehicle ...
@@ -49,7 +49,7 @@ func (s *Server) ServeVehicle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	app := application.Vehicle(form)
+	app := application.NewVehicle(form)
 	err = app.Validate()
 	if err != nil {
 		appErrors := err.(application.ValidationErrors)
@@ -60,17 +60,19 @@ func (s *Server) ServeVehicle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	expire := time.Duration(s.conf.Cache.Expire.Vehicle) * time.Minute
+
 	key := fmt.Sprintf("%d-%d", app.Inn, app.Ogrn)
 	if _, ok := s.cache.Get(key); ok {
-		logrus.WithFields(logrus.Fields{"INN": app.Inn}).Error("rate limit")
+		logrus.WithFields(logrus.Fields{"key": key}).Error("rate limit")
 
-		txt := fmt.Sprintf("Вы не можете подавать заявку чаще чем одни раз в течение %s", s.expire.String())
+		txt := fmt.Sprintf("Вы не можете подавать заявку чаще чем одни раз в течение %s", expire.String())
 		msg := fmt.Sprintf(format, "Bad request", txt, 100, 400)
 		s.http500Error([]byte(msg), w, r)
 		return
 	}
 
-	s.cache.Set(key, true, cache.DefaultExpiration)
+	s.cache.Set(key, true, expire)
 
 	err = s.que.Publish(s.conf.Amqp.Exchange, s.conf.Amqp.Routing.Vehicle, app, amqp.Table{}, amqp.Table{})
 	if err != nil {

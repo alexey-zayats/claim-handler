@@ -15,6 +15,7 @@ type Config struct {
 		Routing  struct {
 			Vehicle string
 			People  string
+			Single  string
 		}
 	}
 	Log struct {
@@ -25,7 +26,12 @@ type Config struct {
 		Port int
 	}
 	Cache struct {
-		Expire  int
+		Expire struct {
+			Default int
+			Vehicle int
+			People  int
+			Single  int
+		}
 		Cleanup int
 	}
 }

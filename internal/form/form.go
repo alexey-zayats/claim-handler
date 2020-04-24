@@ -7,7 +7,7 @@ type Form struct {
 	Title        string `json:"title" validate:"required"`
 	Address      string `json:"address" validate:"required"`
 	Inn          string `json:"inn" validate:"required,numeric,min=10"`
-	Ogrn         string `json:"ogrn" validate:"required,numeric,min=10"`
+	Ogrn         string `json:"ogrn" validate:"required,numeric,min=13"`
 	CeoName      string `json:"ceo_name" validate:"required"`
 	CeoPhone     string `json:"ceo_phone" validate:"required"`
 	CeoEmail     string `json:"ceo_email" validate:"required,email"`
