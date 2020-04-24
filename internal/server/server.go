@@ -101,8 +101,8 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) http500Error(err []byte, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Header().Add("Content-Type", "application/json")
 	w.Write(err)
 }
 
