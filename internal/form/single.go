@@ -26,8 +26,8 @@ type Single struct {
 	DateFrom          Date   `json:"date_from" validate:"required"`
 	DateTo            Date   `json:"date_to" validate:"required"`
 	OtherReason       string `json:"other_reason,omitempty"`
-	WhoNeedsHelp      string `json:"who_needs_help" validate:"required"`
-	WhoNeedsHelpPhone string `json:"who_needs_help_phone" validate:"required"`
+	WhoNeedsHelp      string `json:"who_needs_help,omitempty"`
+	WhoNeedsHelpPhone string `json:"who_needs_help_phone,omitempty"`
 	DocLinks          string `json:"doc_links" validate:"required"`
 }
 
