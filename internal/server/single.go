@@ -67,7 +67,7 @@ func (s *Server) ServeSingle(w http.ResponseWriter, r *http.Request) {
 	if _, ok := s.cache.Get(key); ok {
 		logrus.WithFields(logrus.Fields{"INN": app.Inn}).Error("rate limit")
 
-		txt := fmt.Sprintf("Вы не можете подавать заявку чаще чем одни раз в течение %s", expire.String())
+		txt := fmt.Sprintf("Вы не можете подавать заявку чаще чем один раз в течение %s", expire.String())
 		msg := fmt.Sprintf(format, "Bad request", txt, 100, 400)
 		s.http500Error([]byte(msg), w, r)
 		return
