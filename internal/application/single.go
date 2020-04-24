@@ -3,10 +3,12 @@ package application
 import (
 	"github.com/alexey-zayats/claim-handler/internal/form"
 	"github.com/alexey-zayats/claim-handler/internal/util"
+	"time"
 )
 
 // Single ..
 type Single struct {
+	Dirty             bool
 	DistrictID        int64
 	PassType          int
 	Title             string
@@ -23,9 +25,8 @@ type Single struct {
 	CityFrom          string
 	CityTo            string
 	AddressDest       string
-	DateFrom          string
-	DateTo            string
-	Reason            int64
+	DateFrom          time.Time
+	DateTo            time.Time
 	OtherReason       string
 	WhoNeedsHelp      string
 	WhoNeedsHelpPhone string
@@ -52,9 +53,8 @@ func NewSingle(form *form.Single) *Single {
 	app.CityFrom = form.CityFrom
 	app.CityTo = form.CityTo
 	app.AddressDest = form.AddressDest
-	app.DateFrom = form.DateFrom
-	app.DateTo = form.DateTo
-	app.Reason = parseInt64(form.Reason)
+	app.DateFrom = form.DateFrom.Time
+	app.DateTo = form.DateTo.Time
 	app.OtherReason = form.OtherReason
 	app.WhoNeedsHelp = form.WhoNeedsHelp
 	app.WhoNeedsHelpPhone = form.WhoNeedsHelpPhone
@@ -77,6 +77,20 @@ func NewSingle(form *form.Single) *Single {
 // Validate ...
 func (a *Single) Validate() ValidationErrors {
 	ve := make(ValidationErrors)
+
+	for i, p := range a.Passes {
+
+		ok := false
+		for _, r := range re {
+			if r.MatchString(p.Car) == true {
+				ok = true
+				break
+			}
+		}
+
+		a.Dirty = !ok
+		a.Passes[i].Car = util.TrimNumber(p.Car)
+	}
 
 	if util.CheckINN(a.Inn) == false {
 		ve["inn"] = append(ve["inn"], "Некорректный ИНН")

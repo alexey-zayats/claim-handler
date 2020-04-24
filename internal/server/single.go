@@ -34,7 +34,8 @@ func (s *Server) ServeSingle(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, form)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"reason": err}).Error("unable json.Unmarshal form post")
-		msg := fmt.Sprintf(format, "Bad request", "Unable unmarshal body to json", 3, 500)
+		e := fmt.Sprintf("Невозможно разобрать данные: %s", err)
+		msg := fmt.Sprintf(format, "Bad request", e, 3, 500)
 		s.http500Error([]byte(msg), w, r)
 		return
 	}
