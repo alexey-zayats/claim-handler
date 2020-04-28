@@ -15,6 +15,7 @@ import (
 	"go.uber.org/dig"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -45,10 +46,12 @@ func NewServer(di DI) *Server {
 	expire := time.Duration(di.Config.Cache.Expire.Default) * time.Minute
 	cleanup := time.Duration(di.Config.Cache.Cleanup) * time.Minute
 
+	validate := validator.New()
+
 	s := &Server{
 		conf:     di.Config,
 		que:      di.Queue,
-		validate: validator.New(),
+		validate: validate,
 		cache:    cache.New(expire, cleanup),
 	}
 	return s
@@ -110,7 +113,22 @@ func (s *Server) formErrors(e validator.ValidationErrors, w http.ResponseWriter,
 
 	fields := make(map[string][]string)
 	for _, v := range e {
-		fields[v.Tag()] = append(fields[v.Tag()], fmt.Sprintf("Ошибка валидации поля '%s'", v.Tag()))
+
+		logrus.WithFields(logrus.Fields{
+			"Kind": v.Kind(),
+			"Value": v.Value(),
+			"Tag": v.Tag(),
+			"StructField": v.StructField(),
+			"Field": v.Field(),
+			"Type": v.Type(),
+			"ActualTag": v.ActualTag(),
+			"Namespace": v.Namespace(),
+			"Param": v.Param(),
+			"StructNamespace": v.StructNamespace(),
+		}).Error("validation")
+
+		f := strings.ToLower(v.Field())
+		fields[f] = append(fields[v.Tag()], fmt.Sprintf("Ошибка валидации поля '%s': %s %s", f, v.Tag(), v.Param()))
 	}
 
 	jsf, err := json.Marshal(fields)
