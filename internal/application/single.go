@@ -90,7 +90,7 @@ func (a *Single) Validate() ValidationErrors {
 		}
 
 		a.Dirty = !ok
-		a.Passes[i].Car = util.TrimNumber(p.Car)
+		a.Passes[i].Car = util.TrimNumber(util.NormalizeCarNumber(p.Car))
 	}
 
 	if util.CheckINN(a.Inn) == false {
