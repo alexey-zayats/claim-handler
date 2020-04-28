@@ -26,7 +26,7 @@ type FIO struct {
 // Car ...
 type Car struct {
 	FIO
-	Car string `json:"car,omitempty"`
+	Car string `json:"car" validate:"required,max=15"`
 }
 
 // Vehicle ...
