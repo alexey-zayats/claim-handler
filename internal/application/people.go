@@ -5,6 +5,7 @@ import (
 	"github.com/alexey-zayats/claim-handler/internal/form"
 	"github.com/alexey-zayats/claim-handler/internal/util"
 	"html"
+	"strings"
 )
 
 // People ..
@@ -13,8 +14,8 @@ type People struct {
 	PassType     int
 	Title        string
 	Address      string
-	Inn          int64
-	Ogrn         int64
+	Inn          string
+	Ogrn         string
 	CeoName      string
 	CeoPhone     string
 	CeoEmail     string
@@ -32,8 +33,8 @@ func NewPeople(form *form.People) *People {
 	app.PassType = int(parseInt64(form.PassType))
 	app.Title = html.EscapeString(form.Title)
 	app.Address = html.EscapeString(form.Address)
-	app.Inn = parseInt64(form.Inn)
-	app.Ogrn = parseInt64(form.Ogrn)
+	app.Inn = strings.TrimSpace(form.Inn)
+	app.Ogrn = strings.TrimSpace(form.Ogrn)
 	app.CeoName = html.EscapeString(form.CeoName)
 	app.CeoPhone = html.EscapeString(form.CeoPhone)
 	app.CeoEmail = html.EscapeString(form.CeoEmail)
@@ -58,15 +59,11 @@ func NewPeople(form *form.People) *People {
 func (a *People) Validate() ValidationErrors {
 	ve := make(ValidationErrors)
 
-	var err error
-
-	err = util.CheckINN(a.Inn)
-	if err != nil {
+	if err := util.CheckINN(a.Inn); err != nil {
 		ve["inn"] = append(ve["inn"], fmt.Sprintf("Некорректный ИНН(%d): %s", a.Inn, err))
 	}
 
-	err = util.CheckOGRN(a.Ogrn)
-	if err != nil {
+	if err := util.CheckOGRN(a.Ogrn); err != nil {
 		ve["ogrn"] = append(ve["org"], fmt.Sprintf("Некорректный ОРГН(%d): %s", a.Ogrn, err))
 	}
 

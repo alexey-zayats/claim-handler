@@ -6,6 +6,7 @@ import (
 	"github.com/alexey-zayats/claim-handler/internal/util"
 	"html"
 	"regexp"
+	"strings"
 )
 
 // Vehicle ..
@@ -15,8 +16,8 @@ type Vehicle struct {
 	PassType     int
 	Title        string
 	Address      string
-	Inn          int64
-	Ogrn         int64
+	Inn          string
+	Ogrn         string
 	CeoName      string
 	CeoPhone     string
 	CeoEmail     string
@@ -34,8 +35,8 @@ func NewVehicle(form *form.Vehicle) *Vehicle {
 	app.PassType = int(parseInt64(form.PassType))
 	app.Title = html.EscapeString(form.Title)
 	app.Address = html.EscapeString(form.Address)
-	app.Inn = parseInt64(form.Inn)
-	app.Ogrn = parseInt64(form.Ogrn)
+	app.Inn = strings.TrimSpace(form.Inn)
+	app.Ogrn = strings.TrimSpace(form.Ogrn)
 	app.CeoName = html.EscapeString(form.CeoName)
 	app.CeoPhone = html.EscapeString(form.CeoPhone)
 	app.CeoEmail = html.EscapeString(form.CeoEmail)
@@ -80,16 +81,12 @@ func (a *Vehicle) Validate() ValidationErrors {
 		a.Passes[i].Car = util.TrimNumber(util.NormalizeCarNumber(p.Car))
 	}
 
-	var err error
-
-	err = util.CheckINN(a.Inn)
-	if err != nil {
-		ve["inn"] = append(ve["inn"], fmt.Sprintf("Некорректный ИНН(%d): %s", a.Inn, err))
+	if err := util.CheckINN(a.Inn); err != nil {
+		ve["inn"] = append(ve["inn"], fmt.Sprintf("Некорректный ИНН(%s): %s", a.Inn, err))
 	}
 
-	err = util.CheckOGRN(a.Ogrn)
-	if err != nil {
-		ve["ogrn"] = append(ve["org"], fmt.Sprintf("Некорректный ОРГН(%d): %s", a.Ogrn, err))
+	if err := util.CheckOGRN(a.Ogrn); err != nil {
+		ve["ogrn"] = append(ve["org"], fmt.Sprintf("Некорректный ОРГН(%s): %s", a.Ogrn, err))
 	}
 
 	return ve

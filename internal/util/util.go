@@ -2,8 +2,10 @@ package util
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"math"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -77,10 +79,29 @@ func IntToSlice(n int64, sequence []int64) []int64 {
 	return sequence
 }
 
+// StringToSliceInt64 ...
+func StringToSliceInt64(s string) ([]int64, error) {
+
+	var err error
+	a := strings.Split(s, "")
+	d := make([]int64, len(a))
+	for i, c := range a {
+		d[i], err = strconv.ParseInt(c, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return d, nil
+}
+
 // CheckINN ...
-func CheckINN(d int64) error {
-	innLen := DigitsCount(d)
-	inn := IntToSlice(d, []int64{})
+func CheckINN(input string) error {
+	innLen := len(input)
+
+	inn, err := StringToSliceInt64(input)
+	if err != nil {
+		return errors.Wrap(err, "ошибка преобразования строки в число")
+	}
 
 	if innLen != 10 && innLen != 12 {
 		return fmt.Errorf("неверная длина")
@@ -152,14 +173,18 @@ var (
 )
 
 // CheckOGRN ...
-func CheckOGRN(d int64) error {
+func CheckOGRN(input string) error {
 
-	ogrnLen := DigitsCount(d)
+	ogrnLen := len(input)
 	if ogrnLen != 13 && ogrnLen != 15 {
-		return fmt.Errorf("некорректная длина(%d) ОГРН(%d)", ogrnLen, d)
+		return fmt.Errorf("некорректная длина(%s) ОГРН(%s)", ogrnLen, input)
 	}
 
-	ogrn := IntToSlice(d, []int64{})
+	ogrn, err := StringToSliceInt64(input)
+	if err != nil {
+		return errors.Wrap(err, "ошибка преобразования строки в число")
+	}
+
 	flag := ogrn[0]
 
 	if ogrnLen == 13 { // ЕГРЮЛ

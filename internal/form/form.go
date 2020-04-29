@@ -10,8 +10,8 @@ type Form struct {
 	PassType     string `json:"pass_type" validate:"required,numeric"`
 	Title        string `json:"title" validate:"required"`
 	Address      string `json:"address" validate:"required"`
-	Inn          string `json:"inn" validate:"required,numeric,min=10"`
-	Ogrn         string `json:"ogrn" validate:"required,numeric,min=13"`
+	Inn          string `json:"inn" validate:"required,min=10,max=15"`
+	Ogrn         string `json:"ogrn" validate:"required,min=13,max=15"`
 	CeoName      string `json:"ceo_name" validate:"required"`
 	CeoPhone     string `json:"ceo_phone" validate:"required"`
 	CeoEmail     string `json:"ceo_email" validate:"required,email"`

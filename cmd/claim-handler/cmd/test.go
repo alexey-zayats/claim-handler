@@ -19,12 +19,12 @@ func init() {
 
 func testMain(cmd *cobra.Command, args []string) {
 
-	inn := []int64{
-		263214229140,
-		233605231170,
+	inn := []string{
+		"263214229140",
+		"233605231170",
 	}
 
-	ogrn := []int64{}
+	ogrn := []string{}
 
 	for _, d := range inn {
 		fmt.Printf("INN(%d) is Valid(%v)\n", d, util.CheckINN(d))
