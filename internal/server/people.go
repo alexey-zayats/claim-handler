@@ -41,6 +41,8 @@ func (s *Server) ServePeople(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	form.Trim()
+
 	err = s.validate.Struct(form)
 	validationErrors := err.(validator.ValidationErrors)
 

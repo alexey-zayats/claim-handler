@@ -40,6 +40,8 @@ func (s *Server) ServeSingle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	form.Trim()
+
 	err = s.validate.Struct(form)
 	if err != nil {
 		validationErrors := err.(validator.ValidationErrors)

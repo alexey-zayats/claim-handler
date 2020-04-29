@@ -31,6 +31,32 @@ type Single struct {
 	DocLinks          string `json:"doc_links" validate:"required"`
 }
 
+// Trim ...
+func (s *Single) Trim() {
+	s.DistrictID = strings.TrimSpace(s.DistrictID)
+	s.PassType = strings.TrimSpace(s.PassType)
+	s.Title = strings.TrimSpace(s.Title)
+	s.Address = strings.TrimSpace(s.Address)
+	s.Inn = strings.TrimSpace(s.Inn)
+	s.CeoName = strings.TrimSpace(s.CeoName)
+	s.CeoPhone = strings.TrimSpace(s.CeoPhone)
+	s.CeoEmail = strings.TrimSpace(s.CeoEmail)
+	s.ActivityKind = strings.TrimSpace(s.ActivityKind)
+	s.Personal = strings.TrimSpace(s.Personal)
+	s.Authenticity = strings.TrimSpace(s.Authenticity)
+	s.CityFrom = strings.TrimSpace(s.CityFrom)
+	s.CityTo = strings.TrimSpace(s.CityTo)
+	s.AddressDest = strings.TrimSpace(s.AddressDest)
+	s.OtherReason = strings.TrimSpace(s.OtherReason)
+	s.WhoNeedsHelp = strings.TrimSpace(s.WhoNeedsHelp)
+	s.WhoNeedsHelpPhone = strings.TrimSpace(s.WhoNeedsHelpPhone)
+	s.DocLinks = strings.TrimSpace(s.DocLinks)
+
+	for i := range s.Passes {
+		s.Passes[i].Trim()
+	}
+}
+
 // Date ...
 type Date struct {
 	time.Time

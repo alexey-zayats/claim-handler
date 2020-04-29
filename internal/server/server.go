@@ -115,15 +115,15 @@ func (s *Server) formErrors(e validator.ValidationErrors, w http.ResponseWriter,
 	for _, v := range e {
 
 		logrus.WithFields(logrus.Fields{
-			"Kind": v.Kind(),
-			"Value": v.Value(),
-			"Tag": v.Tag(),
-			"StructField": v.StructField(),
-			"Field": v.Field(),
-			"Type": v.Type(),
-			"ActualTag": v.ActualTag(),
-			"Namespace": v.Namespace(),
-			"Param": v.Param(),
+			"Kind":            v.Kind(),
+			"Value":           v.Value(),
+			"Tag":             v.Tag(),
+			"StructField":     v.StructField(),
+			"Field":           v.Field(),
+			"Type":            v.Type(),
+			"ActualTag":       v.ActualTag(),
+			"Namespace":       v.Namespace(),
+			"Param":           v.Param(),
 			"StructNamespace": v.StructNamespace(),
 		}).Error("validation")
 
