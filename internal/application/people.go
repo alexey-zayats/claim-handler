@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"github.com/alexey-zayats/claim-handler/internal/form"
 	"github.com/alexey-zayats/claim-handler/internal/util"
 	"html"
@@ -57,12 +58,16 @@ func NewPeople(form *form.People) *People {
 func (a *People) Validate() ValidationErrors {
 	ve := make(ValidationErrors)
 
-	if util.CheckINN(a.Inn) == false {
-		ve["inn"] = append(ve["inn"], "Некорректный ИНН")
+	var err error
+
+	err = util.CheckINN(a.Inn)
+	if err != nil {
+		ve["inn"] = append(ve["inn"], fmt.Sprintf("Некорректный ИНН(%d): %s", a.Inn, err))
 	}
 
-	if util.CheckOGRN(a.Ogrn) == false {
-		ve["ogrn"] = append(ve["org"], "Некорректный ОРГН")
+	err = util.CheckOGRN(a.Ogrn)
+	if err != nil {
+		ve["ogrn"] = append(ve["org"], fmt.Sprintf("Некорректный ОРГН(%d): %s", a.Ogrn, err))
 	}
 
 	return ve

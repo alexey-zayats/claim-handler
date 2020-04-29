@@ -125,7 +125,7 @@ func (s *Server) formErrors(e validator.ValidationErrors, w http.ResponseWriter,
 			"Namespace":       v.Namespace(),
 			"Param":           v.Param(),
 			"StructNamespace": v.StructNamespace(),
-		}).Error("validation")
+		}).Error("form.validation")
 
 		f := strings.ToLower(v.Field())
 		fields[f] = append(fields[v.Tag()], fmt.Sprintf("Ошибка валидации поля '%s': %s %s", f, v.Tag(), v.Param()))
@@ -144,6 +144,12 @@ func (s *Server) formErrors(e validator.ValidationErrors, w http.ResponseWriter,
 }
 
 func (s *Server) appErrors(ve application.ValidationErrors, w http.ResponseWriter, r *http.Request) {
+
+	for k, v := range ve {
+		logrus.WithFields(logrus.Fields{
+			k: v,
+		}).Error("app.validation")
+	}
 
 	jsf, err := json.Marshal(ve)
 	if err != nil {

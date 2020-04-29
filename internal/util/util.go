@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strings"
@@ -77,12 +78,12 @@ func IntToSlice(n int64, sequence []int64) []int64 {
 }
 
 // CheckINN ...
-func CheckINN(d int64) bool {
+func CheckINN(d int64) error {
 	innLen := DigitsCount(d)
 	inn := IntToSlice(d, []int64{})
 
 	if innLen != 10 && innLen != 12 {
-		return false
+		return fmt.Errorf("неверная длина")
 	}
 
 	if innLen == 10 {
@@ -96,7 +97,7 @@ func CheckINN(d int64) bool {
 		}
 		check := inn[9]
 		if check != sum {
-			return false
+			return fmt.Errorf("неверная сумма: check(%d) != sum(%d)", check, sum)
 		}
 
 	} else if innLen == 12 {
@@ -118,18 +119,22 @@ func CheckINN(d int64) bool {
 
 		sum2 := b % 11
 		if sum2 > 9 {
-			sum2 = sum1 % 10
+			sum2 = sum2 % 10
 		}
 
 		check1 := inn[10]
 		check2 := inn[11]
 
-		if check1 != sum1 || check2 != sum2 {
-			return false
+		if check1 != sum1 {
+			return fmt.Errorf("неверная сумма: check1(%d) != sum1(%d)", check1, sum1)
+		}
+
+		if check2 != sum2 {
+			return fmt.Errorf("неверная сумма: check2(%d) != sum2(%d)", check2, sum2)
 		}
 	}
 
-	return true
+	return nil
 }
 
 var (
@@ -147,11 +152,11 @@ var (
 )
 
 // CheckOGRN ...
-func CheckOGRN(d int64) bool {
+func CheckOGRN(d int64) error {
 
 	ogrnLen := DigitsCount(d)
 	if ogrnLen != 13 && ogrnLen != 15 {
-		return false
+		return fmt.Errorf("некорректная длина(%d) ОГРН(%d)", ogrnLen, d)
 	}
 
 	ogrn := IntToSlice(d, []int64{})
@@ -160,7 +165,7 @@ func CheckOGRN(d int64) bool {
 	if ogrnLen == 13 { // ЕГРЮЛ
 
 		if flags[flag] == false {
-			return false
+			return fmt.Errorf("некорректный флаг реестра")
 		}
 
 		a := SliceToInt(ogrn, 11)
@@ -170,14 +175,14 @@ func CheckOGRN(d int64) bool {
 			sum = sum % 10
 		}
 
-		if sum != check {
-			return false
+		if check != sum {
+			return fmt.Errorf("неверная сумма: check(%d) != sum(%d)", check, sum)
 		}
 
 	} else if ogrnLen == 15 { // ЕГРИП
 
 		if flags[flag] == true {
-			return false
+			return fmt.Errorf("некорректный флаг реестра")
 		}
 
 		a := SliceToInt(ogrn, 13)
@@ -188,12 +193,12 @@ func CheckOGRN(d int64) bool {
 			sum = sum % 10
 		}
 
-		if sum != check {
-			return false
+		if check != sum {
+			return fmt.Errorf("неверная сумма: check(%d) != sum(%d)", check, sum)
 		}
 	}
 
-	return true
+	return nil
 }
 
 /*

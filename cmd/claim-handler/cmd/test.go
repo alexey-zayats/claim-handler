@@ -20,7 +20,8 @@ func init() {
 func testMain(cmd *cobra.Command, args []string) {
 
 	inn := []int64{
-		2311296072,
+		263214229140,
+		233605231170,
 	}
 
 	ogrn := []int64{}

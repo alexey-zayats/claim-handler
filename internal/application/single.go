@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"github.com/alexey-zayats/claim-handler/internal/form"
 	"github.com/alexey-zayats/claim-handler/internal/util"
 	"html"
@@ -93,8 +94,10 @@ func (a *Single) Validate() ValidationErrors {
 		a.Passes[i].Car = util.TrimNumber(util.NormalizeCarNumber(p.Car))
 	}
 
-	if util.CheckINN(a.Inn) == false {
-		ve["inn"] = append(ve["inn"], "Некорректный ИНН")
+	var err error
+	err = util.CheckINN(a.Inn)
+	if err != nil {
+		ve["inn"] = append(ve["inn"], fmt.Sprintf("Некорректный ИНН(%d): %s", a.Inn, err))
 	}
 
 	return ve
