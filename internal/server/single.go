@@ -65,7 +65,7 @@ func (s *Server) ServeSingle(w http.ResponseWriter, r *http.Request) {
 
 	expire := time.Duration(s.conf.Cache.Expire.Single) * time.Minute
 
-	key := fmt.Sprintf("%d-%d", app.Inn, app.Ogrn)
+	key := fmt.Sprintf("%s-%s", app.Inn, app.Ogrn)
 	if _, ok := s.cache.Get(key); ok {
 		logrus.WithFields(logrus.Fields{"INN": app.Inn}).Error("rate limit")
 

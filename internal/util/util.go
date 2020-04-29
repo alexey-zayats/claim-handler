@@ -104,7 +104,7 @@ func CheckINN(input string) error {
 	}
 
 	if innLen != 10 && innLen != 12 {
-		return fmt.Errorf("неверная длина")
+		return fmt.Errorf("неверная длина(%d)", innLen)
 	}
 
 	if innLen == 10 {
@@ -177,7 +177,7 @@ func CheckOGRN(input string) error {
 
 	ogrnLen := len(input)
 	if ogrnLen != 13 && ogrnLen != 15 {
-		return fmt.Errorf("некорректная длина(%s) ОГРН(%s)", ogrnLen, input)
+		return fmt.Errorf("некорректная длина(%d) ОГРН(%s)", ogrnLen, input)
 	}
 
 	ogrn, err := StringToSliceInt64(input)
